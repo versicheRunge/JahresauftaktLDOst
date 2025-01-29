@@ -1,0 +1,756 @@
+<!--
+    Bingo-Challenge HV Edition
+    Entwickelt von Thomas Runge
+    Version 2.025
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Bingo-Karte von Thomas Runge 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f4f4f9, #e0e0e0);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            animation: backgroundAnimation 10s infinite alternate;
+            background-size: 400% 400%;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .bingo-card {
+            width: 90%;
+            max-width: 800px;
+            background-color: #ffffff;
+            border: 5px solid #00a859;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bingo-header {
+            background-color: #00a859;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            padding: 10px;
+        }
+
+        .bingo-cell {
+            background-color: #f9f9f9;
+            color: #333;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 20px;
+            border: 2px solid #00a859;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bingo-cell.completed {
+            background: linear-gradient(135deg, gold, #ffd700);
+            color: white;
+            transform: rotateY(360deg);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .bingo-cell.completed::after {
+            content: "✔️";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #00a859;
+            animation: pop 0.5s ease;
+        }
+
+        .bingo-cell.completed .date-stamp {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 10px;
+            color: #00a859;
+        }
+
+        .bingo-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0, 168, 89, 0.5);
+        }
+
+        .bingo-cell.rotate {
+            animation: rotate 0.5s ease-in-out;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        @keyframes pop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .bingo-footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 16px;
+            color: #333;
+            background-color: #f1f1f1;
+            border-top: 2px solid #00a859;
+        }
+
+        .progress {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #00a859;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .buttons {
+            margin-top: 10px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            background-color: #00a859;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #008c47;
+        }
+
+        .email-button {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 168, 89, 0.7);
+            }
+            
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(0, 168, 89, 0);
+            }
+            
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 168, 89, 0);
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 1s ease;
+        }
+
+        .confetti.fade-out {
+            opacity: 0;
+        }
+
+        .motivational {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #00a859;
+            font-weight: bold;
+        }
+
+        .success-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .success-overlay.active {
+            display: flex;
+        }
+
+        .success-overlay h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .success-overlay button {
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+
+        .green-checkmark {
+            font-size: 60px;
+            color: #00a859;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        .firework {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        .firework-particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: gold;
+            border-radius: 50%;
+            animation: explode 1s ease-out;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(10); opacity: 0; }
+        }
+
+        #lauftext {
+            background: linear-gradient(to right, #FFD700, #FFA500, #FF8C00, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 2s linear infinite, rainbow 3s linear infinite;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            box-sizing: border-box;
+            width: 100%;
+            font-size: 28px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        @keyframes shine {
+            0% { background-position: 0; }
+            100% { background-position: 200%; }
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        .easter-egg {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #00a859;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10001;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .easter-egg.active {
+            display: block;
+        }
+
+        .t-frame {
+            position: absolute;
+            border: 3px solid black;
+            border-radius: 10px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { border-color: black; }
+            50% { border-color: gold; }
+            100% { border-color: black; }
+        }
+
+        .email-overlay {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10002;
+        }
+
+        .email-overlay.active {
+            display: block;
+        }
+
+        .orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            z-index: 10003;
+            font-size: 24px;
+            padding: 20px;
+        }
+
+        .orientation-warning.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+<div class="orientation-warning" id="orientationWarning">
+    Bitte drehe dein Handy ins Querformat für die bestmögliche Darstellung.
+</div>
+
+<div class="bingo-card">
+    <div class="bingo-header">Bingo-Challenge HV Edition🚀</div>
+    <div class="bingo-grid" id="bingoGrid">
+<div class="bingo-cell" data-bingo="1">20 Stück Verlängerungen in einer Woche</div>
+<div class="bingo-cell" data-bingo="2">4 Stück K11</div>
+<div class="bingo-cell" data-bingo="3">100.000 € LV-Beitragssumme in einem Monat</div>
+<div class="bingo-cell" data-bingo="4">500.000 € LV-Beitragssumme gesamt</div>
+<div class="bingo-cell" data-bingo="5">500 € AU-Beitragssumme in einer Woche</div>
+<div class="bingo-cell" data-bingo="6">1 Stück AL-Vertrag</div>
+<div class="bingo-cell" data-bingo="7">4 Stück SBU</div>
+<div class="bingo-cell" data-bingo="8">100 Stück Verlängerungen gesamt</div>
+<div class="bingo-cell" data-bingo="9">2 Stück Risiko-LV</div>
+<div class="bingo-cell" data-bingo="10">+25 Stück Schwebe Neugeschäft</div>
+<div class="bingo-cell" data-bingo="11">250.000 € AL-Beitragssumme</div>
+<div class="bingo-cell" data-bingo="12">14 Stücke Biometrie als Agenturergebnis</div>
+<div class="bingo-cell" data-bingo="13">+50 Stück Schwebe Neugeschäft</div>
+<div class="bingo-cell" data-bingo="14">2.000 € RS-Beitragssumme in einem Monat</div>
+<div class="bingo-cell" data-bingo="15">5 Stück RS in einem Monat</div>
+<div class="bingo-cell" data-bingo="16">+25 Stück RUB/IVC</div>
+<div class="bingo-cell" data-bingo="17">50 Stück AG-Daten an das VSC</div>
+<div class="bingo-cell" data-bingo="18">10.000 € SHUR-Beitragssumme</div>
+<div class="bingo-cell" data-bingo="19">+75 Stück Schwebe Neugeschäft</div>
+<div class="bingo-cell" data-bingo="20">5.000 € GGP-Beitragssumme</div>
+<div class="bingo-cell" data-bingo="21">20 Stück Verkehrs-RS</div>
+<div class="bingo-cell" data-bingo="22">1 Stück bAV</div>
+<div class="bingo-cell" data-bingo="23">25 Stück AG-Daten an das VSC</div>
+<div class="bingo-cell" data-bingo="24">+25 Stück SHUR Netto ab 31.12</div>
+<div class="bingo-cell" data-bingo="25">20 Stück ILV</div>
+<div class="bingo-cell" data-bingo="26">1 Stück GGP-Vertrag</div>
+<div class="bingo-cell" data-bingo="27">2.000 € AU-Beitragssumme</div>
+<div class="bingo-cell" data-bingo="28">5.000 € AU-Beitragssumme</div>
+<div class="bingo-cell" data-bingo="29">5.000 € RS-Beitragssumme</div>
+<div class="bingo-cell" data-bingo="30">+50 Stück RUB/IVC</div>
+    </div>
+    <div class="bingo-footer">
+        <div id="progress" class="progress">Erledigte Felder: 0 von 20</div>
+        <div class="progress-bar">
+            <div id="progressBarFill" class="progress-bar-fill"></div>
+        </div>
+        <div id="motivational" class="motivational"></div>
+        <div class="buttons">
+            <button onclick="exportProgress()">Fortschritt speichern</button>
+            <button onclick="importProgress()">Fortschritt laden</button>
+            <button onclick="resetProgress()">Zurücksetzen</button>
+        </div>
+    </div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+<div class="firework" id="firework"></div>
+<div class="success-overlay" id="successOverlay">
+    <div>
+        <h1>Woohooo! Glückwunsch! Bingoziel erreicht!🎉🎉🎉</h1>
+        <div class="green-checkmark">✔️</div>
+        <div id="lauftext">Jetzt schnell die LD informieren! (klick) 🎉</div>
+        <button onclick="closeSuccessOverlay()">Erledigt💫</button>
+    </div>
+</div>
+
+<div class="email-overlay" id="emailOverlay">
+    <h2>⬇️ E-Mail an die LD schicken ⬇️</h2>
+    <button onclick="sendEmail()" class="email-button">Woohoo! Jetzt schnell die E-Mail senden! 🎉</button>
+    <button onclick="closeEmailOverlay()">🚫Keine Email senden 😱</button>
+</div>
+
+<div class="easter-egg" id="easterEgg">
+    🕵️‍♂️ Du hast das geheime T von Thomas entdeckt – wie hast du das geschafft? 🕵️‍♂️
+</div>
+
+<script>
+    const cells = document.querySelectorAll('.bingo-cell');
+    const progressText = document.getElementById('progress');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const motivationalText = document.getElementById('motivational');
+    const confettiContainer = document.getElementById('confetti');
+    const fireworkContainer = document.getElementById('firework');
+    const successOverlay = document.getElementById('successOverlay');
+    const emailOverlay = document.getElementById('emailOverlay');
+    const easterEgg = document.getElementById('easterEgg');
+    const orientationWarning = document.getElementById('orientationWarning');
+    let completedCount = 0;
+    let clicksToday = 0;
+    let currentDay = 1;
+    let limitDisabled = false;
+    let tDiscovered = false;
+
+    // Definition des "T": Obere erste Reihe (0, 1, 2, 3, 4) + Senkrechter Strich ab der Mitte (2, 7, 12, 17, 22, 27)
+    const tPattern = [0, 1, 2, 3, 4, 7, 12, 17, 22, 27];
+
+    const motivationalMessages = [
+        "🌟 Super Start! Die Bingo-Reise beginnt!",
+        "🚀 Fantastischer Fortschritt! Weiter so!",
+        "🎯 Präzision pur! Jedes Feld ein Treffer!",
+        "⭐ Beeindruckend! Das Talent ist unübersehbar!",
+        "🎨 Kreativität in Bestform! Weiter so!",
+        "🌈 Eine bunte Mischung aus Können und Einsatz!",
+        "💫 Wie ein Stern am Bingo-Himmel!",
+        "🎪 Eine fantastische Vorstellung!",
+        "🎭 Die Performance ist einfach großartig!",
+        "🎪 Absolute Spitzenleistung!",
+        "🌺 Blühend vor Talent und Energie!",
+        "🎯 Volltreffer! Perfekt ausgeführt!",
+        "🎨 Ein weiteres Kunstwerk vollendet!",
+        "🎪 Die Show geht weiter - unaufhaltsam!",
+        "🌟 Strahlender Erfolg auf ganzer Linie!",
+        "💫 Wie ein Komet am Bingo-Himmel!",
+        "🎭 Eine meisterhafte Vorstellung!",
+        "🎯 Fast am Ziel - unaufhaltsam vorwärts!",
+        "⭐ Kurz vor dem großen Finale!",
+        "🏆 GEWONNEN! Eine absolute Meisterleistung!",
+        "🌈 Den Erfolg noch weiter ausbauen!",
+        "🎪 Über das Ziel hinaus - fantastisch!",
+        "🌟 Pure Extraklasse!",
+        "💫 Unaufhaltsam auf Erfolgskurs!",
+        "🎭 Eine legendäre Performance!",
+        "🎯 Perfektion in Reinform!",
+        "⭐ Strahlender als je zuvor!",
+        "🌺 Grenzenlose Begeisterung!",
+        "🎨 Meisterschaft in Vollendung!",
+        "🏆 Absoluter Champion!"
+    ];
+
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    function checkOrientation() {
+        if (isMobileDevice() && window.innerHeight > window.innerWidth) {
+            orientationWarning.classList.add('active');
+        } else {
+            orientationWarning.classList.remove('active');
+        }
+    }
+
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    checkOrientation();
+
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.shiftKey && event.key === 'L') {
+            limitDisabled = !limitDisabled;
+            alert(`Limitierung ist jetzt ${limitDisabled ? 'deaktiviert' : 'aktiviert'}.`);
+        }
+    });
+
+    function checkDailyLimit() {
+        if (limitDisabled) return true;
+
+        const today = new Date().toLocaleDateString();
+        const lastClickDate = localStorage.getItem('lastClickDate');
+
+        if (lastClickDate === today) {
+            clicksToday++;
+        } else {
+            localStorage.setItem('lastClickDate', today);
+            clicksToday = 1;
+        }
+
+        const maxClicks = currentDay === 1 ? 3 : Infinity;
+
+        if (clicksToday > maxClicks) {
+            alert(`Mehr als ${maxClicks} Felder an einem Tag? Damit haben wir nicht gerechnet, sorry. Morgen kannst du wieder mehr Felder erledigen!`);
+            return false;
+        }
+        return true;
+    }
+
+    function createConfetti() {
+        for (let i = 0; i < 150; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'absolute';
+            confetti.style.width = '8px';
+            confetti.style.height = '8px';
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            confetti.style.top = `${Math.random() * 100}%`;
+            confetti.style.left = `${Math.random() * 100}%`;
+            confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear infinite`;
+            confetti.style.opacity = '0.7';
+            confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            confettiContainer.appendChild(confetti);
+        }
+        setTimeout(() => {
+            confettiContainer.classList.add('fade-out');
+            setTimeout(() => {
+                confettiContainer.innerHTML = '';
+                confettiContainer.classList.remove('fade-out');
+            }, 1000);
+        }, 5000);
+    }
+
+    function createFirework() {
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'firework-particle';
+            particle.style.top = `${Math.random() * 100}%`;
+            particle.style.left = `${Math.random() * 100}%`;
+            fireworkContainer.appendChild(particle);
+        }
+        setTimeout(() => {
+            fireworkContainer.innerHTML = '';
+        }, 1000);
+    }
+
+    function checkEasterEgg() {
+        if (tDiscovered) return;
+
+        const isTPattern = tPattern.every(index => cells[index].classList.contains('completed'));
+        if (isTPattern) {
+            tDiscovered = true;
+            easterEgg.classList.add('active');
+            tPattern.forEach(index => {
+                const cell = cells[index];
+                const frame = document.createElement('div');
+                frame.className = 't-frame';
+                frame.style.width = `${cell.offsetWidth}px`;
+                frame.style.height = `${cell.offsetHeight}px`;
+                frame.style.top = `${cell.offsetTop}px`;
+                frame.style.left = `${cell.offsetLeft}px`;
+                document.body.appendChild(frame);
+            });
+
+            setTimeout(() => {
+                easterEgg.classList.remove('active');
+                document.querySelectorAll('.t-frame').forEach(el => el.remove());
+            }, 5000);
+        }
+    }
+
+    function loadProgress() {
+        const savedProgress = JSON.parse(localStorage.getItem('bingoProgress')) || [];
+        cells.forEach((cell, index) => {
+            if (savedProgress.includes(index)) {
+                cell.classList.add('completed');
+                completedCount++;
+                const dateStamp = document.createElement('div');
+                dateStamp.className = 'date-stamp';
+                dateStamp.textContent = `Erledigt am ${new Date().toLocaleDateString()}`;
+                cell.appendChild(dateStamp);
+            }
+        });
+        updateProgress();
+    }
+
+    function saveProgress() {
+        const progress = [];
+        cells.forEach((cell, index) => {
+            if (cell.classList.contains('completed')) {
+                progress.push(index);
+            }
+        });
+        localStorage.setItem('bingoProgress', JSON.stringify(progress));
+    }
+
+    function updateProgress() {
+        progressText.textContent = `Erledigte Felder: ${completedCount} von 20`;
+        progressBarFill.style.width = `${(completedCount / 20) * 100}%`;
+
+        if (completedCount === 19) {
+            motivationalText.textContent = "Nur noch ein Feld bis zum Ziel!";
+        } else if (completedCount === 20) {
+            showSuccessOverlay();
+            emailOverlay.classList.add('active');
+            motivationalText.textContent = motivationalMessages[19]; // GEWONNEN Nachricht
+        } else if (completedCount === 30) {
+            motivationalText.textContent = "Du bist eine absolute Legende! 🌟🏆👑"; // Spezialnachricht für Feld 30
+        } else if (completedCount > 20) {
+            const messageIndex = 20 + ((completedCount - 20) % 9); // Rotiert durch die Nachrichten 21-29
+            motivationalText.textContent = motivationalMessages[messageIndex];
+        } else {
+            // Für 1-18 Felder: Verteile die ersten 19 Nachrichten gleichmäßig
+            const messageIndex = Math.floor((completedCount / 19) * 19);
+            motivationalText.textContent = motivationalMessages[messageIndex];
+        }
+    }
+
+    function showSuccessOverlay() {
+        successOverlay.classList.add('active');
+        createConfetti();
+        createFirework();
+
+        const lauftext = document.getElementById('lauftext');
+        lauftext.addEventListener('click', () => {
+            const subject = "Bingo-Challenge abgeschlossen!";
+            const body = "Hallo zusammen,\n\nich habe alle Felder der Bingo-Challenge geschafft! 🎯 🏆 ⭐ 🚫 😱 ⬇️\n\nViele Grüße,\n[Dein Name]";
+            window.location.href = `mailto:andreas.bedford@itzehoer.de?cc=anja.babbe-wulf@itzehoer.de,thomas.runge@itzehoer.de&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        });
+    }
+
+    function closeSuccessOverlay() {
+        successOverlay.classList.remove('active');
+        confettiContainer.innerHTML = '';
+        fireworkContainer.innerHTML = '';
+    }
+
+    function closeEmailOverlay() {
+        emailOverlay.classList.remove('active');
+    }
+
+    function sendEmail() {
+        const subject = "Bingo-Challenge abgeschlossen!";
+        const body = "Hallo zusammen,\n\nich habe alle Felder der Bingo-Challenge geschafft! 🎯 🏆 ⭐ 🚫 😱 ⬇️\n\nViele Grüße,\n[Dein Name]";
+        window.location.href = `mailto:andreas.bedford@itzehoer.de?cc=anja.babbe-wulf@itzehoer.de,thomas.runge@itzehoer.de&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    cells.forEach((cell, index) => {
+        cell.addEventListener('click', () => {
+            if (!cell.classList.contains('completed') && checkDailyLimit()) {
+                cell.classList.add('rotate');
+                setTimeout(() => {
+                    cell.classList.remove('rotate');
+                    cell.classList.add('completed');
+                    completedCount++;
+                    const dateStamp = document.createElement('div');
+                    dateStamp.className = 'date-stamp';
+                    dateStamp.textContent = `Erledigt am ${new Date().toLocaleDateString()}`;
+                    cell.appendChild(dateStamp);
+                    createConfetti();
+                    checkEasterEgg();
+                    updateProgress();
+                    saveProgress();
+                }, 500);
+            } else if (cell.classList.contains('completed')) {
+                cell.classList.remove('completed');
+                completedCount--;
+                const dateStamp = cell.querySelector('.date-stamp');
+                if (dateStamp) dateStamp.remove();
+                updateProgress();
+                saveProgress();
+            }
+        });
+    });
+
+    function exportProgress() {
+        const progress = localStorage.getItem('bingoProgress');
+        const blob = new Blob([progress], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'bingo-progress.json';
+        link.click();
+    }
+
+    function importProgress() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const progress = JSON.parse(e.target.result);
+                localStorage.setItem('bingoProgress', JSON.stringify(progress));
+                location.reload();
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+    }
+
+    function resetProgress() {
+        localStorage.removeItem('bingoProgress');
+        location.reload();
+    }
+
+    loadProgress();
+</script>
+
+</body>
+</html>
