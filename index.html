@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itzehoer Jahresauftaktveranstaltung LD Ost</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --primary: #7DB148;
+            --primary-dark: #679E3D;
+            --primary-light: #8CBE50;
+            --secondary: #84B74C;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --dark: #333333;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--white);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            perspective: 1000px;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .landscape-warning {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--gradient);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) and (orientation: portrait) {
+            .landscape-warning {
+                display: flex;
+            }
+        }
+
+        .scene {
+            position: relative;
+            min-height: 100vh;
+            padding-top: 20px;
+            perspective: 1000px;
+            z-index: 1;
+        }
+
+        .curved-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 1200px;
+            width: 100%;
+            padding: 4rem 2rem;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transform-style: preserve-3d;
+            border: 1px solid rgba(125, 177, 72, 0.2);
+        }
+
+        .main-title {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            transform: translateZ(50px);
+        }
+
+        .subtitle {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: var(--primary-dark);
+            margin-bottom: 2rem;
+            transform: translateZ(30px);
+        }
+
+        .description-text {
+            color: var(--dark);
+            margin: 2rem auto;
+            padding: 2rem;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            transform: translateZ(10px);
+            border: 1px solid rgba(125, 177, 72, 0.2);
+            font-size: 1.1rem;
+        }
+
+        .user-type-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem auto;
+            max-width: 1000px;
+            padding: 1rem;
+            transform-style: preserve-3d;
+        }
+
+        .user-type-btn {
+            position: relative;
+            padding: 2rem;
+            background: var(--white);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            transform: translateZ(20px);
+            box-shadow: 0 10px 30px rgba(125, 177, 72, 0.1);
+            overflow: hidden;
+        }
+
+        .user-type-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .user-type-btn:hover {
+            transform: translateZ(30px) scale(1.05);
+            box-shadow: 
+                0 20px 40px rgba(125, 177, 72, 0.2),
+                0 0 0 2px rgba(125, 177, 72, 0.4);
+        }
+
+        .user-type-btn:hover::before {
+            opacity: 1;
+        }
+
+        .user-type-btn span {
+            position: relative;
+            z-index: 1;
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .user-type-btn:hover span {
+            color: var(--white);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            perspective: 1000px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .action-button {
+            position: relative;
+            padding: 3rem 2rem;
+            background: var(--white);
+            border-radius: 20px;
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: var(--dark);
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(125, 177, 72, 0.1);
+        }
+
+        .action-button:hover {
+            transform: translateZ(30px) scale(1.05);
+            box-shadow: 
+                0 25px 50px rgba(125, 177, 72, 0.2),
+                0 0 0 2px rgba(125, 177, 72, 0.4);
+        }
+
+        .action-button h3 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .page-container {
+            display: none;
+            min-height: 100vh;
+            padding: 120px 2rem 4rem;
+            background: var(--white);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .type-title {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: var(--primary);
+            margin-bottom: 4rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 1rem 2rem;
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 101;
+            font-size: 1.1rem;
+        }
+
+        .back-button:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                margin: 1rem;
+                padding: 2rem;
+            }
+
+            .user-type-selection {
+                grid-template-columns: 1fr;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .back-button {
+                top: 10px;
+                left: 10px;
+                padding: 0.8rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landscape-warning">
+        <div>
+            <h2>Bitte drehen Sie Ihr Gerät</h2>
+            <p>Diese Seite ist für das Querformat optimiert</p>
+        </div>
+    </div>
+
+    <div class="scene">
+        <div class="curved-bg">
+            <svg viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <path fill="rgba(125, 177, 72, 0.1)" d="M0,0 C300,100 700,0 1000,100 L1000,1000 L0,1000 Z" />
+            </svg>
+        </div>
+
+        <div class="content">
+            <h1 class="main-title">Jahresauftaktveranstaltung <br> LD Ost</h1>
+            <p class="subtitle">Ohne dich geht's nicht!</p>
+            <p class="description-text">🎉 <strong>Willkommen beim großen LD Ost Bingo – deine Challenge beginnt!</strong> 🎯  
+<br>
+Hier zählt nicht nur Glück, sondern vor allem <strong>dein Einsatz und dein Tempo!</strong> 🚀  
+<br>
+Dein Bingo-Schein ist gefüllt mit <strong>30 spannenden Zielen</strong>, die dich und dein Team herausfordern.  
+Doch aufgepasst: <strong> Die schnellsten, die 20 Felder knacken</strong>, sichern sich den Sieg und feiern den Bingo-Erfolg! 🏆  
+<br><br>
+💡 <strong>Deine Mission:</strong>  
+<br>
+Arbeite dich clever und schnell durch die Aufgaben. Jede erfüllte Aufgabe bringt dich einen Schritt näher an die magische Marke von <strong>20 erreichten Zielen</strong>.  
+Die Reihenfolge der Felder spielt keine Rolle – Hauptsache, du bist schnell und strategisch unterwegs!  
+<br><br>
+<strong>Wer zuerst kommt, gewinnt!</strong> 🎊  
+<br>
+Zeig, was du drauf hast, motiviere dich und andere und lass dir diesen Triumph nicht entgehen.  
+Egal, ob du durchstartest oder Feld für Feld ruhig meisterst – <strong>jeder Erfolg zählt und bringt dich weiter!</strong>  
+<br><br>
+🔥 <strong>Gib alles, knack die 20 von 30 und zeige allen, dass du der Bingo-Champion der LD Ost bist!</strong> 🚀</p>
+
+            <div class="description-text">
+                ⚡ Starte jetzt! Wähle den passenden Button! 🚀<br>
+                ⬇️ ⬇️ ⬇️
+            </div>
+
+            <div class="user-type-selection">
+                <button class="user-type-btn" onclick="showUserTypePage('hauptberufler')">
+                    <span>Hauptberufler</span>
+                </button>
+                <button class="user-type-btn" onclick="showUserTypePage('nebenberufler')">
+                    <span>Nebenberufler</span>
+                </button>
+                <button class="user-type-btn" onclick="showUserTypePage('agp')">
+                    <span>AGP/KBT/AGASSI</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hauptberufler Page -->
+    <div id="hauptberufler-page" class="page-container">
+        <button class="back-button" onclick="goBack()">← Zurück</button>
+        <h2 class="type-title">Werkzeuge für Hauptberufler</h2>
+        <div class="action-grid">
+            <a href="#" class="action-button">
+                <h3>Online ausprobieren</h3>
+                <p>Starten Sie direkt im Browser</p>
+            </a>
+            <a href="#" class="action-button">
+                <h3>Herunterladen</h3>
+                <p>PC-Version installieren</p>
+            </a>
+            <a href="mailto:kontakt@itzehoer.de" class="action-button">
+                <h3>Per Email</h3>
+                <p>Alle Infos per Mail erhalten</p>
+            </a>
+        </div>
+    </div>
+
+<!-- AGP Page -->
+<div id="agp-page" class="page-container">
+    <button class="back-button" onclick="goBack()">← Zurück</button>
+    <h2 class="type-title">Werkzeuge für AGP/KBT/AGASSI</h2>
+    <div class="action-grid">
+        <a href="https://versicherunge.github.io/JahresauftaktLDOst/" class="action-button">
+            <h3>Online ausprobieren</h3>
+            <p>Starten Sie direkt im Browser</p>
+        </a>
+        <a href="https://we.tl/t-nqdwFcG6yu" class="action-button">
+            <h3>Herunterladen</h3>
+            <p>PC-Version installieren</p>
+        </a>
+        <a href="mailto:?subject=🎯 Interaktive Bingokarte für die Jahresauftaktveranstaltung LD Ost&body=Hallo!%0D%0A%0D%0AHier sende ich mir den Link zur interaktiven Bingokarte für die Jahresauftaktveranstaltung der LD Ost.%0D%0A%0D%0A🎮 Mit dieser Karte kann ich:%0D%0A- Meine Ziele digital verfolgen%0D%0A- Meinen Fortschritt jederzeit einsehen%0D%0A- Die Challenge einfach und effizient meistern%0D%0A%0D%0A⬇️ DOWNLOAD-LINK (Wichtig: Bitte NUR am Laptop/PC öffnen!):%0D%0A%0D%0Ahttps://wetransfer.com/downloads/fcfb0653bf8c05ab901dd7b1b540640820250129003548/a77a15?t_exp=1738715749%26t_lsid=d1d317b3-9cb3-426a-ae42-e757bdab3231%26t_network=link%26t_rid=ZW1haWx8Njc5OTMwZWZjYzkyNDUzMjI0NDc5M2Zi%26t_s=download_link%26t_ts=1738110949%0D%0A%0D%0A⚡ Tipp: Der Link ist 5 Tage gültig - am besten gleich herunterladen!%0D%0A%0D%0AFrohes Schaffen und viel Erfolg bei der Challenge! 🚀%0D%0A%0D%0A💪 Ich weiß, dass Thomas auf mich zählt und ich auf seine Hilfe zählen kann.%0D%0A🎸 Also lass uns 2025 rocken! 🌟%0D%0A%0D%0ABeste Grüße" class="action-button">
+            <h3>Per Email</h3>
+            <p>Alle Infos per Mail erhalten</p>
+        </a>
+    </div>
+</div>
+
+    <script>
+        // Navigation Functions
+        function showUserTypePage(userType) {
+            const mainScene = document.querySelector('.scene');
+            const targetPage = document.getElementById(`${userType}-page`);
+            
+            // Scale and fade out main scene
+            gsap.to(mainScene, {
+                scale: 0.95,
+                opacity: 0,
+                duration: 0.4,
+                ease: "power2.inOut",
+                onComplete: () => {
+                    mainScene.style.display = 'none';
+                    targetPage.style.display = 'block';
+                    // Scale and fade in target page
+                    gsap.fromTo(targetPage,
+                        { 
+                            opacity: 0,
+                            scale: 1.05,
+                            y: 20
+                        },
+                        { 
+                            opacity: 1,
+                            scale: 1,
+                            y: 0,
+                            duration: 0.6,
+                            ease: "power2.out"
+                        }
+                    );
+                }
+            });
+        }
+
+        function goBack() {
+            const mainScene = document.querySelector('.scene');
+            const currentPage = document.querySelector('.page-container[style*="display: block"]');
+            
+            if (currentPage) {
+                // Scale and fade out current page
+                gsap.to(currentPage, {
+                    opacity: 0,
+                    scale: 1.05,
+                    duration: 0.4,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        currentPage.style.display = 'none';
+                        mainScene.style.display = 'block';
+                        // Scale and fade in main scene
+                        gsap.fromTo(mainScene,
+                            { 
+                                opacity: 0,
+                                scale: 0.95,
+                                y: -20
+                            },
+                            { 
+                                opacity: 1,
+                                scale: 1,
+                                y: 0,
+                                duration: 0.6,
+                                ease: "power2.out"
+                            }
+                        );
+                    }
+                });
+            }
+        }
+
+        // Initialize page with a nice scale-up animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainScene = document.querySelector('.scene');
+            mainScene.style.display = 'block';
+            mainScene.style.opacity = '0';
+            mainScene.style.transform = 'scale(0.98)';
+            
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // Initial animation
+            gsap.to(mainScene, {
+                opacity: 1,
+                scale: 1,
+                duration: 1.2,
+                ease: "power2.out"
+            });
+
+            // Animate content elements with stagger
+            gsap.from('.content > *', {
+                opacity: 0,
+                y: 30,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out",
+                delay: 0.3
+            });
+        });
+    </script>
+    </script>
+</body>
+</html>
+            </a>
+        </div>
+    </div>
+
+    <!-- Nebenberufler Page -->
+    <div id="nebenberufler-page" class="page-container">
+        <button class="back-button" onclick="goBack()">← Zurück</button>
+        <h2 class="type-title">Werkzeuge für Nebenberufler</h2>
+        <div class="action-grid">
+            <a href="#" class="action-button">
+                <h3>Online reinschauen 🔍</h3>
+                <p>Einmal direkt im Browser testen.</p>
+            </a>
+            <a href="#" class="action-button">
+                <h3>Herunterladen</h3>
+                <p>Bitte nur auf PC/Laptop - nicht am Handy!</p>
+            </a>
+            <a href="mailto:kontakt@itzehoer.de" class="action-button">
+                <h3>Per Email</h3>
+                <p>Alle Infos per Mail erhalten</p>
